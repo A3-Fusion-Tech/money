@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { LayoutDashboard, Users, UserSquare2, Banknote, Menu } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -11,6 +11,39 @@ interface BottomNavProps {
 
 export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange }) => {
   const { language } = useAuth();
+  
+  // Hide the bar while the keyboard is open (a text field is focused)
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const textTypes = ["text", "search", "number", "tel", "email", "password", "url"];
+    const isTextField = (el: Element | null) => {
+      if (!el) return false;
+      if (el.tagName === "TEXTAREA") return true;
+      if (el.tagName === "INPUT") {
+        return textTypes.includes((el as HTMLInputElement).type);
+      }
+      return false;
+    };
+
+    const onFocusIn = (e: FocusEvent) => {
+      if (isTextField(e.target as Element)) setKeyboardOpen(true);
+    };
+    const onFocusOut = () => {
+      setTimeout(() => {
+        if (!isTextField(document.activeElement)) setKeyboardOpen(false);
+      }, 50);
+    };
+
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
+  }, []);
+
+  if (keyboardOpen) return null;
 
   const tabs = [
     {
@@ -64,7 +97,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange })
               }`}
             >
               <Icon className={`w-5 h-5 ${isActive ? "stroke-[2.5]" : "stroke-[1.75]"}`} />
-              <span className="text-[11px] mt-1 truncate">
+              <span className="text-[10px] mt-1 leading-tight text-center break-words">
                 {language === "ta" ? tab.labelTa : tab.labelEn}
               </span>
             </button>

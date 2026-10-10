@@ -503,6 +503,18 @@ export const api = {
     }
   },
 
+  async getSignups(): Promise<{ signups: Array<{ id: string; username: string; name: string; createdAt: string }> }> {
+    return apiRequest<{ signups: Array<{ id: string; username: string; name: string; createdAt: string }> }>("/api/auth/signups");
+  },
+
+  async reviewSignup(userId: string, action: "APPROVE" | "REJECT"): Promise<{ success: boolean }> {
+    return apiRequest<{ success: boolean }>("/api/auth/signups", {
+      method: "POST",
+      body: JSON.stringify({ userId, action }),
+    });
+  }, 
+  
+  
   async logout(): Promise<void> {
     try {
       await apiRequest("/api/auth/logout", { method: "POST" });
@@ -709,6 +721,12 @@ export const api = {
     return apiRequest<{ success: boolean; customer: Customer }>("/api/customers", {
       method: "POST",
       body: JSON.stringify(data),
+    });
+  },
+  
+  async deleteCustomer(id: string): Promise<{ success: boolean }> {
+    return apiRequest<{ success: boolean }>(`/api/customers/${id}`, {
+      method: "DELETE",
     });
   },
 

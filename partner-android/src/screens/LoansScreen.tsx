@@ -16,6 +16,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { usePopupLock } from "../hooks/usePopupLock";
 import { api } from "../services/api";
 import { LoanDetail, Customer } from "../types";
 import { LoanDocumentModal } from "../components/LoanDocumentModal";
@@ -61,6 +62,10 @@ export const LoansScreen: React.FC = () => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+    usePopupLock(!!selectedLoan, () => setSelectedLoan(null));
+    usePopupLock(showCreateModal, () => setShowCreateModal(false));
+    usePopupLock(showConfirmModal, () => setShowConfirmModal(false));
+    usePopupLock(showScheduleModal, () => setShowScheduleModal(false));
 
   // Form State
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
@@ -590,8 +595,7 @@ export const LoansScreen: React.FC = () => {
             <div className="flex justify-between items-center px-5 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">{ta ? "புதிய கடன் வழங்குதல்" : "Issue New Loan"}</h3>
-                <p className="text-xs text-slate-400">{ta ? "முழு கடன் கணக்கீடு" : "Full Loan Creation Engine"}</p>
-              </div>
+              </div>             
               <button type="button" onClick={() => setShowCreateModal(false)} className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">
                 <X className="w-5 h-5" />
               </button>
@@ -641,7 +645,7 @@ export const LoansScreen: React.FC = () => {
                         <div className={`flex items-center gap-1 mb-0.5 font-bold text-[11px] ${active ? (l.color === "indigo" ? "text-indigo-700" : l.color === "emerald" ? "text-emerald-700" : "text-amber-700") : "text-slate-500"}`}>
                           {l.icon}<span>{ta ? l.ta : l.en}</span>
                         </div>
-                        {active && <span className={`text-[9px] font-bold ${l.color === "indigo" ? "text-indigo-600" : l.color === "emerald" ? "text-emerald-600" : "text-amber-600"}`}>✓ {ta ? "தேர்ந்தெடுக்கப்பட்டது" : "Selected"}</span>}
+                        {active && <span className={`block break-words leading-tight text-[9px] font-bold ${l.color === "indigo" ? "text-indigo-600" : l.color === "emerald" ? "text-emerald-600" : "text-amber-600"}`}>✓ {ta ? "தேர்ந்தெடுக்கப்பட்டது" : "Selected"}</span>}
                       </button>
                     );
                   })}
@@ -746,7 +750,7 @@ export const LoansScreen: React.FC = () => {
               {/* 3b. Advance Interest Fields */}
               {loanCategory === "ADVANCE_INTEREST" && (
                 <div className="space-y-4 p-3.5 bg-emerald-50/60 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200 dark:border-emerald-800">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3 [&_label]:flex [&_label]:min-h-[2rem] [&_label]:items-end">
                     <div>
                       <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">{ta ? "கடன் தொகை / முக மதிப்பு (₹) *" : "Face / Loan Principal (₹) *"}</label>
                       <input type="number" required value={principalAmount} onChange={(e) => { setPrincipalAmount(e.target.value); const p = Number(e.target.value) || 0; const n = Math.max(1, Number(advInstCount) || 1); setAdvInstAmt(String(Math.round(p / n))); }}
@@ -803,7 +807,7 @@ export const LoansScreen: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-2 [&_label]:flex [&_label]:min-h-[2rem] [&_label]:items-end">
                     <div>
                       <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">{ta ? "வசூல் முறை *" : "Frequency *"}</label>
                       <select value={advFreq} onChange={(e) => setAdvFreq(e.target.value as Frequency)}
@@ -890,7 +894,7 @@ export const LoansScreen: React.FC = () => {
               )}
 
               {/* 4. Common Fields: Disbursement, Processing Fee, Loan Date */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">{ta ? "விநியோக முறை" : "Disbursement"}</label>
                   <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}
@@ -905,7 +909,7 @@ export const LoansScreen: React.FC = () => {
                   <input type="number" value={processingFee} onChange={(e) => setProcessingFee(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono focus:ring-2 focus:ring-indigo-500" />
                 </div>
-                <div>
+                <div className="col-span-2">
                   <label className="flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1"><Calendar className="w-3 h-3" />{ta ? "வழங்கிய தேதி *" : "Disbursement Date *"}</label>
                   <input type="date" required value={startDate} onChange={(e) => setStartDate(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono focus:ring-2 focus:ring-indigo-500" />
